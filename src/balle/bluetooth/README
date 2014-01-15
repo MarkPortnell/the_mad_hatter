@@ -1,0 +1,8 @@
+This folder contains the bluetooth classes which are used to control the robot remotely.
+In order to test the bluetooth (via running the 'TestBluetooth.java' class) you must first
+ensure the brick has the 'Roboto.nxj' program uploaded to it. For instructions to do this
+see the README in the 'balle.bluetooth' folder.
+
+Run the 'Roboto' program on the brick, it will show it is looking for a connection.
+Now run the 'TestBluetooth.java' class. This will connect to the brick and the user can now
+control the robot via the keyboard, e.g. W for forward, Q for stop etc...

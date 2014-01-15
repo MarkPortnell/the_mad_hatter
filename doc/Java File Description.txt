@@ -1,0 +1,269 @@
+src/balle/io/listener
+
+=====================================================================================
+Listener.java
+
+Creates Listener interface
+
+Mehthod to update our robots pos and ori, their robots pos and ori and the balls pos, current time
+Method to update pitchsize
+Method to update goals
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+src/balle/io/reader
+
+=====================================================================================
+AbstractVisionReader.java {import balle.io.listener.Listener}
+
+Creates AbstractVisionReader interface for any class that updates world positions.
+=====================================================================================
+Reader.java (implements AbstractVisionReader) {import java.util.ArrayList , List & balle.io.listener.Listener}
+
+For easy implementation of AbstractVisionReader interface. Just sends out
+Methods to propagate values to all listeners
+=====================================================================================
+SocketVisionReader.java (extends Reader) {import java.io.BufferedInputStream , IOException & java.net.ServerSocket , Socket & java.util.Scanner}
+
+SocketVisionReader: Captures input from vision system. Usage is to create an instance and add a listener.
+
+SocketThread (extends Thread)
+
+Contains an inner class SocketThread that will update listeners with world information.
+*************************************************************************************
+src/balle/misc
+
+=====================================================================================
+Globals.java {import java.io.FileNotFoundException , IOException & java.util.ArrayList , List & org.jbox2d.common.Vec2 & balle.main.Config & balle.memory.FolderReader , PowersConfigFile & balle.world.AngularVelocity , Orientation , Velocity * balle.world.objects.Pitch , Robot}
+
+Very important file containing all the constants such as ball radius robot width etc
+=====================================================================================
+Powers.java (implements Saves) {import balle.memory.utility.Saves}
+
+Object - Powers(int power, float velocity)
+
+Methods to save the power and velocity as a string and then being able to load this into a new Power object
+=====================================================================================
+VtoPData.java {java.util.Arrays , Comparator}
+
+File is List powers and velocities together and so the robot can achieve different speeds using different gears
+*************************************************************************************
+src/balle/world
+
+=====================================================================================
+AbstractWorld.java (implements Listener interface which contains the details of the world, pitch and the goals)
+
+This class will take raw data from the vision system and model the world accordingly. This includes e.g. velocities of the robots and ball and angle of the robots in radians.
+
+Constructor - AbstractWorld(boolean isBalleBlue, boolean goalIsLeft, Pitch pitch)
+
+method - isBlue() - return true if our robot is the blue one, false otherwise
+method - estimatedPosition(MovingPoint object, double timestep, boolean forceEstimation) - returns a Coord of the estimated position of the object after timeStep(milliseconds)
+
+Updates the current state of the world using scaled coordinates
+@param yPosX
+@param yPosY
+@param yRad
+@param bPosX
+@param bPosY
+@param bRad
+@param ballPosX
+@param ballPosY
+@param timestamp
+=====================================================================================
+AngularVelocity.java
+
+Constructor - AngularVelocityAngularVelocity(double angle, double deltaTime, boolean useRadians)
+
+method - degrees() - returns the angle in degrees per milliesecond 
+=====================================================================================
+BasicWorld.java (extends AbstractWorld) {import org.apache.log4j.Logger & import balle.world.objects.Ball , Pitch, Robot}
+
+Constructor - BasicWorld(boolean balleIsBlue, boolean goalIsLeft, Pitch pitch)
+
+Method - positionIsCloseToExpected(Coord previousPosition, Coord currentPosition) - returns true if this position seems to be reasonable enough. Returns true if previousPosition was null and false if currentPosition is null
+
+Method - updateScaled(Coord ourPosition, Orientation ourOrientation, Coord theirsPosition, Orientation theirsOrientation, Coord ballPosition, long timestamp) - updates snapshot so using estimations of values given inputs
+
+=====================================================================================
+Coord.java {imports world.objects.FieldObject , Pitch and Point}
+
+Constructor - Coord(double x, double y, int estimatedFrames)
+
+method - orientation() - returns an orientation of 2 * Pi * arctangent(Y,X).
+method - rotate(Orientation orientation) - returns a new coord rotated counter-clockwise by an angle around the origin
+method - angleBetween(Coord From, Coord to) - returns a orientation using the relevent coords
+=====================================================================================
+DESP.java (Double exponential smoothing-based prediction an alternative to Kalman filter-based predictive tracking)
+
+Used for tracking user position and orientation.
+
+Constructor - DESP (double alpha) - An unequal weighting is placed on these parameters(coordinates) that decays exponentially through time so newer observations get a higher weighting than older ones. The degree of exponential decay is determined by the parameter alpha [0;1).
+=====================================================================================
+EmptySnapshot.java (extends Snapshot) {imports world.objects.Ball , Robot}
+
+An abstraction for Snapshot that creates it without any robots, etc. Just to reduce the number of null checks.
+
+Constructor - EmptySnapshot(BasicWorld world, long timestamp)
+=====================================================================================
+Estimator.java {import org.apache.log4j.Logger}
+
+Constructor - Estimator(double posAlpha, double velAlpha) 
+Method - getPosition() - returns Coord of ball's current position
+Method - estimatePosition(int frames) - returns Coord of ball's estimated future position after certain number of frames
+Method - getVelocity() - returns estimated Velocity of the ball
+=====================================================================================
+Line.java {import java.awt.geom.Line2D & import balle.world.objects.RectangularObject}
+
+Constructor - Line(Coord a, Coord b)
+
+method - rotate(Orientation orientation) - rotates the line around
+method - rotateAroundOrigin(Orientation orientation)
+method - rotateAroundPoint(Coord point, Orientation orientation)
+method - getIntersect(Line l) - returns a Coord at the point two lines intersect
+method - widen(double width) - Returns a RectangularObject with this line running down the centre 
+=====================================================================================
+MutableSnapshot.java {import java.util.ArrayList , List & import balle.strategy.bezierNav.ControllerHistoryElement & import balle.world.objects.Ball , Goal , Pitch , Robot}
+
+Constructor - MutableSnapshot(BasicWorld world, Robot opponent, Robot balle, Ball ball, long timestamp, List<ControllerHistoryElement> controllerHistory)
+
+Similar to Snapshot.java but contains a MutableSnapshot Constructor 
+
+=====================================================================================
+Orientation.java 
+
+Constructor - Orientation(double angle, boolean useRadians)
+
+Useful methods to interact with orientation such as isFacingLeft/Right, works with both degrees and radians
+=====================================================================================
+Predictor.java
+
+Method - fitLine(double[] parameters, double[] x, double[] y, double[] sigma_x, double[] sigma_y, int num_points) - provide estimates of the parameters of a function, such as the intercept and slope of a straight line, to fit to a set of data. Furthermore, it provides error estimates for these parameters.
+Intercept = parameters[0] 
+Slope = parameters[1]
+Errors on intercept = parameters[2] 
+Errors on slope = parameters[3]
+=====================================================================================
+Scalar.java {import balle.misc.Globals}
+
+Constructor - Scaler(float XSHIFTM, float YSHIFTM)
+Various methods for multiplying above floats by scale float.
+=====================================================================================
+SimulatedWorld.java (extends BasicWorld implements ControllerListener) {import java.util.ArrayList & import balle.controller.ControllerListener & import balle.simulator.SnapshotPredictor & import balle.strategy.bezierNav.ControllerHistoryElement & import balle.world.objects.Pitch}
+
+Uses a simulator to account for latency in the system.
+
+Constructor - SimulatedWorld(boolean balleIsBlue, boolean goalIsLeft, Pitch pitch)
+=====================================================================================
+Snapshot.java {import java.util.ArrayList , List & import balle.simulator.SnapshotPredictor & import balle.strategy.bezierNav.ControllerHistoryElement & import balle.world.objects.Ball , Goal, Pitch, Robot}
+
+Constructor - Snapshot(BasicWorld world, Robot opponent, Robot balle, Ball ball, long timestamp, List<ControllerHistoryElement> controllerHistory) - A 'snapshot' of the world
+Used to represent the world and it's changing values
+=====================================================================================
+Velocity.java (extends Coord) {imports org.jbox2d.common.Vec2}
+
+Constructor - Velocity(Coord coord, double timeDelta)
+
+method - adjustLength(double newTimeDelta) - Adjust length of velocity vector to incorporate new timedelta information. Get the distance it would have travelled at this velocity during newTimeDelta. Return the velocity.
+
+method - vec2(float SCALE) -  returns a vec2 object representing the above velocity, scaled to the jbox2d units 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+src/balle/world/processing
+
+=====================================================================================
+AbstractWorldProcessor.java (extends Thread) {import balle.world.AbstractWorld , Snapshot}
+
+A class that is supposed to be a base class for any class that needs to process world snapshots. It defines a basic interface one could use to do this.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+src/balle/world/filter
+
+=====================================================================================
+BallNearWallFilter.java (implements filter) {import balle.misc.Globals & import balle.world.Coord , Snapshot, MutableSnapshot & import balle.world.objects.Ball}
+
+Makes sure the ball is never too close to a wall
+
+=====================================================================================
+Filter.java {import balle.world.Snapshot}
+
+Creates a filter interface, with a filter method which takes a snapshot as an argument
+
+=====================================================================================
+HeightFilter.java (implements filter) {import balle.misc.Globals & import balle.world.Coord , Snapshot, MutableSnapshot & import balle.world.objects.Robot}
+
+Class for filtering input from world to account for height differences between the detected position and the real position at ground level.
+
+Constructor - HeightFilter(Coord worldCenter, double cameraHeight)
+
+=====================================================================================
+TimeFilter.java (implements filter) {import balle.world.Snapshot , MutableSnapshot}
+
+Approximates the true timestamp of the snapshot (Should be when the picture was recorded by the camera)
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+src/balle/world/objects
+
+=====================================================================================
+Ball.java (extends CircularObject implements FieldObject) {balle.misc.Globals & import balle.world.Coord , Velocity}
+
+Constructor - Ball(Coord position, Velocity velocity)
+=====================================================================================
+CircularBuffer.java (extends AbstractQueue<T>) {import java.util.AbstractQueue , ArrayList , Iterator}
+
+Constructor - CircularBuffer(int size)
+Circular buffer built to buffer data streams in the program    
+=====================================================================================
+CircularObject.java (extends MovingPoint implements FieldObject) {balle.misc.Globals & import balle.world.Coord , Line , Velocity}
+
+Constructor - CircularObject(Coord position, Velocity velocity, double radius)
+
+Method - isNear(Robot r) - checks to see if ball is near robot
+=====================================================================================
+FieldObject.java {import balle.world.Coord , Line , Velocity}
+
+Creates FiledObject Interface
+Various methods to interact with "objects" in the world
+=====================================================================================
+Goal.java (extends StaticFieldObject) {import balle.world.Coord , Line}
+
+Constructor - Goal(boolean leftGoal, double minX, double maxX, double minY, double maxY)
+Method - getRightPostCoord() - Returns the Coord object for the right goal post, similar one for left goal post.
+=====================================================================================
+Location.java (extends StaticFieldObject) {import balle.world.Coord , Line}
+
+Constructor - Location(Coord coord)
+=====================================================================================
+MovingPoint.java {import balle.world.Coord , Velocity}
+
+Constructor - MovingPoint(Coord position, Velocity velocity)
+=====================================================================================
+Pitch.java (extends StaticFieldObject) {import balle.world.Coord , Line}
+
+Constructor - Pitch(double minX, double maxX, double minY, double maxY)
+method - getWalls() - returns an array of lines of all the walls
+=====================================================================================
+Point.java (extends StaticFieldObject) {import balle.world.Coord , Line}
+
+Constructor - Point(Coord position)
+=====================================================================================
+RectangularObject.java (extends MovingPoint implements FieldObject) {import balle.misc.Globals & org.apache.log4j.Logger & java.awt.geom.Rectangle2D & balle.world.Coord , Line , Velocity , AngularVelocity , Orientation}
+
+Constructor - RectangularObject(Coord position, Velocity velocity, AngularVelocity angularVelocity, Orientation orientation, double width, double height)
+Methods to return the Line objects of the robot's sides, front and back.
+=====================================================================================
+Robot.java (extends RectangularObject) {import balle.misc.Globals & balle.world.Coord , Line , Velocity , AngularVelocity , Orientation}
+
+Constructor - Robot(Coord position, Velocity velocity, AngularVelocity angularVelocity, Orientation orientation)
+Method - possessesBall(Ball ball) - Returns true if the robot is in possession of the ball. That is if the ball is close enough to the kicker that it can kick it.
+Method - getBallKickLine(Ball ball) - Returns the line that would represents the path of the ball if the robot kicked it
+Method - getFacingLine() - Returns the line that represents the robot's facing direction
+Method - isInScoringPosition(Ball ball, Goal goal, Robot otherRobot) - Checks if the robot can score from this position. That is if it is in possession of the ball and facing the goal and other robot is is not blocking the path to the goal.
+Method - isFacingGoal(Goal goal) - Returns true if robot is simply facing the opposing goal
+Method - getAngleToTurnToTarget(Coord targetCoord) - Returns the angle the robot has to turn to face the target coordinate
+=====================================================================================
+StaticFieldObject.java (implements FieldObject) {import balle.world.Coord , Line , Velocity}
+
+Still some methods to implement
+=====================================================================================
+
+
+
+
+

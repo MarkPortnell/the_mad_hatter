@@ -1,0 +1,6 @@
+BASE="/afs/inf.ed.ac.uk/user/s10/s1027418/Eclipse/sdp-group6"
+
+export PYTHONPATH=$PYTHONPATH:$BASE/libs/lib/python2.6/site-packages
+export LOCALBASE=$LOCALBASE:$BASE/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BASE/lib/lib
+

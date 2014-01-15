@@ -1,0 +1,12 @@
+All the code in the balle.brick.* folders is for the NXT brick.
+
+This code is compiled via the command-line using NXJ.
+The 'compile-robot.sh' script in the '/src' folder does this automatically.
+Once compiled, the '.nxj' files have to be uploaded to the brick.
+This can be done via bluetooth using either the 'nxjupload filename.nxj' or 'nxjbrowse -b'.
+
+E.g. 
+$ cd /path/to/eclipse/sdp-group6
+$ cd src
+$ ./compile-robot.sh
+$ nxjbrowse -b OR $ nxjupload filename.nxj
